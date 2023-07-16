@@ -1,0 +1,2 @@
+# pawnamxx
+betas amxmodx

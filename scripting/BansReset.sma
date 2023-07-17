@@ -1,101 +1,102 @@
 #include <amxmodx>
-#include <amxmisc>
 
 #define PLUGIN "Bans Reset"
-#define VERSION "0.0.2"
+#define VERSION "0.0.3"
+#define AUTHOR "ConnorMcLeod & mlibre"
 
-new g_pCvarBannedCfgFile, cvar_active, cvar_month, string[11], gettime[11]
+#define ADMIN_FLAG ADMIN_RCON
 
-public plugin_init()
-{
-    register_plugin( PLUGIN, VERSION, "ConnorMcLeod & mlibre" )
+new g_pCvarBannedCfgFile, g_cvarActive, g_cvarMonth
 
-    register_concmd("amx_reset_bans", "ConCmd_ResetBans", ADMIN_RCON, "removes all bans")
+public plugin_init() {
+    register_plugin(PLUGIN, VERSION, AUTHOR)
     
-    cvar_active = register_cvar("amx_reset_bans_active", "1") // 1 = on / 0 = off
-    cvar_month = register_cvar("amx_reset_bans_month", "31/12") // run every December 31
-   
+    register_concmd("amx_reset_bans", "ConCmd_ResetBans")        // removes all bans
+    
+    g_cvarActive = register_cvar("amx_reset_bans_active", "1")    // 1 = on / 0 = off
+    g_cvarMonth = register_cvar("amx_reset_bans_month", "31/12")    // run every December 31
+    
     g_pCvarBannedCfgFile = get_cvar_pointer("bannedcfgfile")
-    
-    set_task(0.5, "run")
 }
 
-public run(id , lvl, cid)
+public plugin_cfg()
 {
-        if (get_pcvar_num(cvar_active))
-        {
-                check_gettime(id , lvl, cid)
-        }
-}
-
-public check_gettime(id , lvl, cid)
-{
-        get_pcvar_string(cvar_month,string,charsmax(string))
-    
-        get_time("%d/%m", gettime, charsmax(gettime));
-    
-        if (equal(gettime, string ))
-        {
-                ConCmd_ResetBans(id , lvl, cid)
-        }
-}
-
-public ConCmd_ResetBans(id , lvl, cid)
-{
-    if( !cmd_access(id, lvl, cid, 0) )
+    if(get_pcvar_num(g_cvarActive))
     {
-        return PLUGIN_HANDLED
+        new getString[11], getTime[11]
+        
+        get_pcvar_string(g_cvarMonth, getString, charsmax(getString))
+        
+        get_time("%d/%m", getTime, charsmax(getTime))
+        
+        if(equal(getTime, getString))
+        {
+            ConCmd_ResetBans(0)
+        }
     }
+}
 
-    new szBannedCfgFile[260]
-    get_pcvar_string(g_pCvarBannedCfgFile, szBannedCfgFile, charsmax(szBannedCfgFile))
-
-    server_cmd("writeid")
-    server_cmd("writeip")
-    server_exec()
-
-    new buffer[64], szSteamIdOrIp[32], crap[2]
-    new fp = fopen(szBannedCfgFile, "rt")
-    if( fp )
+public ConCmd_ResetBans(id)
+{
+    if( !(get_user_flags(id) & ADMIN_FLAG) ) 
     {
-        while( !feof(fp) )
+        engclient_print(id, engprint_console, "[AMXX] access denied (only admins)")
+        
+        return
+    }
+    
+    static szBannedCfgFile[260]
+    
+    get_pcvar_string(g_pCvarBannedCfgFile, szBannedCfgFile, charsmax(szBannedCfgFile))
+    
+    server_cmd("writeid;writeip")
+    server_exec()
+    
+    new buffer[64], szSteamIdOrIp[32], crap[2]
+    
+    new fp = fopen(szBannedCfgFile, "rt")
+    
+    if(fp)
+    {
+        while(fgets(fp, buffer, charsmax(buffer)))
         {
-            fgets(fp, buffer, charsmax(buffer))
             trim(buffer)
-            if( parse(buffer, crap, 1, crap, 1, szSteamIdOrIp, charsmax(szSteamIdOrIp)) == 3 )
+            
+            if(parse(buffer, crap, 1, crap, 1, szSteamIdOrIp, charsmax(szSteamIdOrIp)) == 3)
             {
                 server_cmd("removeid %s", szSteamIdOrIp)
             }
         }
         server_exec()
-
+            
         fclose(fp)
+        
         fp = 0
-
+            
         server_cmd("writeid")
         server_exec()
     }
-
+    
     fp = fopen("listip.cfg", "rt")
-    if( fp )
+    
+    if(fp)
     {
-        while( !feof(fp) )
+        while(fgets(fp, buffer, charsmax(buffer)))
         {
-            fgets(fp, buffer, charsmax(buffer))
             trim(buffer)
-            if( parse(buffer, crap, 1, crap, 1, szSteamIdOrIp, charsmax(szSteamIdOrIp)) == 3 )
+            
+            if(parse(buffer, crap, 1, crap, 1, szSteamIdOrIp, charsmax(szSteamIdOrIp)) == 3)
             {
                 server_cmd("removeip %s", szSteamIdOrIp)
             }
         }
         server_exec()
-
+            
         fclose(fp)
+        
         fp = 0
-
+            
         server_cmd("writeip")
         server_exec()
     }
-
-    return PLUGIN_HANDLED
 } 

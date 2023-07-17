@@ -2,17 +2,42 @@
 #include <amxmisc>
 
 #define PLUGIN "Bans Reset"
-#define VERSION "0.0.1"
+#define VERSION "0.0.2"
 
-new g_pCvarBannedCfgFile
+new g_pCvarBannedCfgFile, cvar_active, cvar_month, string[11], gettime[11]
 
 public plugin_init()
 {
-    register_plugin( PLUGIN, VERSION, "ConnorMcLeod" )
+    register_plugin( PLUGIN, VERSION, "ConnorMcLeod & mlibre" )
 
     register_concmd("amx_reset_bans", "ConCmd_ResetBans", ADMIN_RCON, "removes all bans")
-
+    
+    cvar_active = register_cvar("amx_reset_bans_active", "1") // 1 = on / 0 = off
+    cvar_month = register_cvar("amx_reset_bans_month", "31/12") // run every December 31
+   
     g_pCvarBannedCfgFile = get_cvar_pointer("bannedcfgfile")
+    
+    set_task(0.5, "run")
+}
+
+public run(id , lvl, cid)
+{
+        if (get_pcvar_num(cvar_active))
+        {
+                check_gettime(id , lvl, cid)
+        }
+}
+
+public check_gettime(id , lvl, cid)
+{
+        get_pcvar_string(cvar_month,string,charsmax(string))
+    
+        get_time("%d/%m", gettime, charsmax(gettime));
+    
+        if (equal(gettime, string ))
+        {
+                ConCmd_ResetBans(id , lvl, cid)
+        }
 }
 
 public ConCmd_ResetBans(id , lvl, cid)

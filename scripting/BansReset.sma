@@ -1,12 +1,12 @@
 #include <amxmodx>
 
 #define PLUGIN "Bans Reset"
-#define VERSION "0.0.3"
+#define VERSION "0.0.4"
 #define AUTHOR "ConnorMcLeod & mlibre"
 
 #define ADMIN_FLAG ADMIN_RCON
 
-new g_pCvarBannedCfgFile, g_cvarActive, g_cvarMonth
+new g_pCvarBannedCfgFile, g_cvarActive, g_cvarMonth, g_pCvarListipCfgFile
 
 public plugin_init() {
     register_plugin(PLUGIN, VERSION, AUTHOR)
@@ -17,6 +17,7 @@ public plugin_init() {
     g_cvarMonth = register_cvar("amx_reset_bans_month", "31/12")    // run every December 31
     
     g_pCvarBannedCfgFile = get_cvar_pointer("bannedcfgfile")
+    g_pCvarListipCfgFile = get_cvar_pointer("listipcfgfile")
 }
 
 public plugin_cfg()
@@ -45,16 +46,16 @@ public ConCmd_ResetBans(id)
         return
     }
     
-    static szBannedCfgFile[260]
+    static szGetCfgFile[260]
     
-    get_pcvar_string(g_pCvarBannedCfgFile, szBannedCfgFile, charsmax(szBannedCfgFile))
+    get_pcvar_string(g_pCvarBannedCfgFile, szGetCfgFile, charsmax(szGetCfgFile))
     
     server_cmd("writeid;writeip")
     server_exec()
     
     new buffer[64], szSteamIdOrIp[32], crap[2]
     
-    new fp = fopen(szBannedCfgFile, "rt")
+    new fp = fopen(szGetCfgFile, "rt")
     
     if(fp)
     {
@@ -77,7 +78,9 @@ public ConCmd_ResetBans(id)
         server_exec()
     }
     
-    fp = fopen("listip.cfg", "rt")
+    get_pcvar_string(g_pCvarListipCfgFile, szGetCfgFile, charsmax(szGetCfgFile))
+    
+    fp = fopen(szGetCfgFile, "rt")
     
     if(fp)
     {

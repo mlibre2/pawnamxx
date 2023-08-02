@@ -130,3 +130,4 @@ public client_command(id)
 	
 	return PLUGIN_CONTINUE
 }
+#endif

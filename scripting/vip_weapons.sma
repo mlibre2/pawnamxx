@@ -31,7 +31,7 @@ new const xWeapon[][xData] =
 		"weapon_deagle", 	CSW_DEAGLE, 	"models/vip_weapons/v_deagle.mdl"
 	},
 	{
-		"weapon_usp", 		CSW_USP, 	"models/vip_weapons/v_deagle.mdl"
+		"weapon_usp", 		CSW_USP, 	"models/vip_weapons/v_usp.mdl"
 	},
 	{
 		"weapon_famas",		CSW_FAMAS, 	"models/vip_weapons/v_famas.mdl"

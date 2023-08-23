@@ -4,7 +4,7 @@
 #include <engine>
 
 #define PLUGIN "Fast Knife"
-#define VERSION "1.6"
+#define VERSION "1.7"
 #define AUTHOR "OciXCrom & mlibre"
 
 #if !defined MAX_PLAYERS
@@ -17,6 +17,7 @@ new g_pSpeed
 new g_pSprintDuration
 new g_pShowSprintMessage
 new g_pRespawn
+new g_pSound
 
 enum _:x 
 {
@@ -31,7 +32,7 @@ new iPlayer[MAX_PLAYERS + 1][x]
 const TASK_ID = 59141
 
 // Add a new sound constant for the sprint end sound
-new const SPRINT_END_SOUND[] = "sound/breathe2.wav"
+new const SPRINT_END_SOUND[] = "fvox/fuzz.wav"
 
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
@@ -44,6 +45,8 @@ public plugin_init() {
 	g_pSpeed = register_cvar("fastknife_speed", "150.0")
 	g_pSprintDuration = register_cvar("sprint_duration", "30")
 	g_pShowSprintMessage = register_cvar("fastknife_msg", "1")
+	g_pRespawn = register_cvar("fastknife_respawn", "1")
+	g_pSound = register_cvar("fastknife_sound", "1")
 	
 	RegisterHam(Ham_Player_ImpulseCommands, "player", "Ham_Player_ImpulseCmds")
 	RegisterHam(Ham_Spawn, "player", "Ham_SpawnPlayer_Post", 1)
@@ -54,18 +57,6 @@ public plugin_precache()
 {
 	// Precache the sprint end sound
 	precache_sound(SPRINT_END_SOUND)
-}
-
-public plugin_cfg()
-{
-	if(cvar_exists("mp_forcerespawn"))
-	{
-		g_pRespawn = get_cvar_num("mp_forcerespawn")
-	}
-	else
-	{
-		g_pRespawn = register_cvar("fastknife_respawn", "1")
-	}
 }
 
 public set_fastknife(id)
@@ -142,8 +133,10 @@ public EndFastKnife(id)
 		iPlayer[id][delay] = get_systime() + get_pcvar_num(g_pSprintDuration)
 	}
 	
-	// Play the sprint end sound
-	client_cmd(id, "spk %s", SPRINT_END_SOUND)
+	if(get_pcvar_num(g_pSound))
+	{
+		client_cmd(id, "spk %s", SPRINT_END_SOUND)
+	}
 	
 	client_print(id, print_chat, "%s: your fun is over! times used (%d of %d)", PLUGIN, iPlayer[id][limit], get_pcvar_num(g_pLimit))
 }
@@ -158,10 +151,10 @@ public Ham_Player_ImpulseCmds(id)
 
 public Ham_SpawnPlayer_Post(id)
 {
-	if( !is_user_alive(id) )
+	if(iPlayer[id][fspawn] || !is_user_alive(id))
 		return HAM_IGNORED
 	
-	if(get_pcvar_num(g_pActive) && get_pcvar_num(g_pShowSprintMessage) && !iPlayer[id][fspawn])
+	if(get_pcvar_num(g_pActive) && get_pcvar_num(g_pShowSprintMessage))
 	{
 		iPlayer[id][fspawn] = 1
 		

@@ -13,13 +13,13 @@
 #if defined RUN_CMD
 #include <hamsandwich>
 
-new is_user_retry[MAX_PLAYERS + 1]
+new bool:is_user_retry[MAX_PLAYERS + 1]
 #else
 new g_pWait, g_pMsg, g_pType
 #endif
 
 #define PLUGIN "s!mple anti-retry"
-#define VERSION "3.5"
+#define VERSION "3.6"
 #define AUTHOR "mlibre"
 
 new Trie:g_Id, g_pImmunity
@@ -36,7 +36,11 @@ public plugin_init() {
 	g_pMsg = register_cvar("antiretry_msg", "wait %d segs for reconnect!") //<-msg show to the player when being kicked NOTE: "%d" return num segs
 	g_pType = register_cvar("antiretry_type", "1") //obtain->authid=1 / ip=2 or name=3
 	#else
-	RegisterHam(Ham_Spawn, "player", "Ham_SpawnPlayer_Post", 1)
+		#if AMXX_VERSION_NUM < 183
+		RegisterHam(Ham_Spawn, "player", "Ham_SpawnPlayer_Post", true)
+		#else
+		RegisterHamPlayer(Ham_Spawn, "Ham_SpawnPlayer_Post", true)
+		#endif
 	#endif
 }
 
@@ -50,7 +54,7 @@ public client_putinserver(id)
 	if(get_pcvar_num(g_pImmunity) && get_user_flags(id) & ADMIN_MENU)
 		return
 	
-	new authid[MAX_AUTHID_LENGTH], ip[MAX_IP_LENGTH], name[MAX_NAME_LENGTH], type
+	new authid[MAX_AUTHID_LENGTH], ip[MAX_IP_LENGTH], nick[MAX_NAME_LENGTH]
 	
 	switch(clamp(get_pcvar_num(g_pType), 1, 3))
 	{
@@ -58,45 +62,29 @@ public client_putinserver(id)
 		{
 			get_user_authid(id, authid, charsmax(authid))
 			
-			if(containi(authid,"_ID") != -1) 
+			if(containi(authid, "_ID") != -1) 
 			{
-				get_user_name(id, name, charsmax(name))
+				get_user_name(id, nick, charsmax(nick))
 				
 				log_amx("** WARNING! ^"%s^" there will be conflict, we change to get the name instead.", authid)
 				
-				type = 3
-				
-				set_pcvar_num(g_pType, type)
-			}
-			else
-			{
-				type = 1
+				set_pcvar_num(g_pType, 3)
 			}
 		}
-		case 2: 
-		{
-			get_user_ip(id, ip, charsmax(ip), 1)
-			
-			type = 2
-		}
-		case 3: 
-		{
-			get_user_name(id, name, charsmax(name))
-			
-			type = 3
-		}
+		case 2: get_user_ip(id, ip, charsmax(ip), 1)
+		case 3: get_user_name(id, nick, charsmax(nick))
 	}
 	
 	#if !defined RUN_CMD
 	static iTimestamp; iTimestamp = get_systime()
 	#endif
 	
-	if( !TrieKeyExists(g_Id, type == 1 ? authid : type == 2 ? ip : name) )
+	if( !TrieKeyExists(g_Id, get_pcvar_num(g_pType) == 1 ? authid : get_pcvar_num(g_pType) == 2 ? ip : encode(nick)) )
 	{
 		#if !defined RUN_CMD
-		TrieSetCell(g_Id, type == 1 ? authid : type == 2 ? ip : name, iTimestamp + get_pcvar_num(g_pWait))
+		TrieSetCell(g_Id, get_pcvar_num(g_pType) == 1 ? authid : get_pcvar_num(g_pType) == 2 ? ip : encode(nick), iTimestamp + get_pcvar_num(g_pWait))
 		#else
-		TrieSetCell(g_Id, type == 1 ? authid : type == 2 ? ip : name, 1)
+		TrieSetCell(g_Id, get_pcvar_num(g_pType) == 1 ? authid : get_pcvar_num(g_pType) == 2 ? ip : encode(nick), 1)
 		#endif
 	}
 	else 
@@ -104,7 +92,7 @@ public client_putinserver(id)
 		#if !defined RUN_CMD
 		new get_user_wait
 		
-		TrieGetCell(g_Id, type == 1 ? authid : type == 2 ? ip : name, get_user_wait)
+		TrieGetCell(g_Id, get_pcvar_num(g_pType) == 1 ? authid : get_pcvar_num(g_pType) == 2 ? ip : encode(nick), get_user_wait)
 		
 		if(get_user_wait > iTimestamp)
 		{
@@ -116,14 +104,26 @@ public client_putinserver(id)
 		}
 		else
 		{
-			TrieDeleteKey(g_Id, type == 1 ? authid : type == 2 ? ip : name)
+			TrieDeleteKey(g_Id, get_pcvar_num(g_pType) == 1 ? authid : get_pcvar_num(g_pType) == 2 ? ip : encode(nick))
 			
-			TrieSetCell(g_Id, type == 1 ? authid : type == 2 ? ip : name, iTimestamp + get_pcvar_num(g_pWait))
+			TrieSetCell(g_Id, get_pcvar_num(g_pType) == 1 ? authid : get_pcvar_num(g_pType) == 2 ? ip : encode(nick), iTimestamp + get_pcvar_num(g_pWait))
 		}
 		#else
-		is_user_retry[id] = 1
+		is_user_retry[id] = true
 		#endif
 	}
+}
+
+stock encode(const str[])
+{
+	new buffer[34]
+	#if AMXX_VERSION_NUM < 183
+	md5(str, buffer)
+	#else
+	hash_string(str, Hash_Md5, buffer, charsmax(buffer))
+	#endif
+	
+	return buffer
 }
 
 #if defined RUN_CMD
@@ -136,7 +136,7 @@ public Ham_SpawnPlayer_Post(const id)
 	{
 		server_cmd("amx_infect #%d", get_user_userid(id))
 		
-		is_user_retry[id] = 0
+		is_user_retry[id] = false
 	}
 	
 	return HAM_IGNORED

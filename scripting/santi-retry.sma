@@ -19,7 +19,7 @@ new g_pWait, g_pMsg
 #endif
 
 #define PLUGIN "s!mple anti-retry"
-#define VERSION "3.6c"
+#define VERSION "3.6d"
 #define AUTHOR "mlibre"
 
 new Trie:g_Id, g_pImmunity, g_pType
@@ -30,12 +30,12 @@ public plugin_init() {
 	g_Id = TrieCreate()
 	
 	g_pImmunity = register_cvar("antiretry_immunity", "0") //<-admin flag "u" omitted
+	g_pType = register_cvar("antiretry_type", "1") //obtain->authid=1 / ip=2 or name=3
 	
 	#if !defined RUN_CMD
 	g_pWait = register_cvar("antiretry_wait", "60") //<-seconds waiting to reconnect...
 	g_pMsg = register_cvar("antiretry_msg", "wait %d segs for reconnect!") //<-msg show to the player when being kicked NOTE: "%d" return num segs
 	#else
-	g_pType = register_cvar("antiretry_type", "1") //obtain->authid=1 / ip=2 or name=3
 		#if AMXX_VERSION_NUM < 183
 		RegisterHam(Ham_Spawn, "player", "Ham_SpawnPlayer_Post", true)
 		#else

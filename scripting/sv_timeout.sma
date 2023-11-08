@@ -6,6 +6,8 @@
 
 #if AMXX_VERSION_NUM > 182
 	#define client_disconnect client_disconnected
+#else
+	#define MAX_PLAYERS 32
 #endif
 
 //#define TIMEOUT
@@ -32,35 +34,51 @@ public chkTimeOut()
 
 //----------------------------------------------------------------------------
 
+enum _:x
+{
+	isBot,
+	isHltv,
+	taskk, 
+	again,
+	reChk
+}
+
+new g_Player[MAX_PLAYERS + 1][x]
+
 const TASK_TEST = 124011
 
 public client_putinserver(id)
 {
-	if(is_user_bot(id) || is_user_hltv(id))
-		return
-	
-	set_task(30.0, "chkOnline", id + TASK_TEST, .flags="b")	//<-loop
+	if(is_user_bot(id))
+	{
+		g_Player[id][isBot] = 1
+	}
+	else if(is_user_hltv(id))
+	{
+		g_Player[id][isHltv] = 1
+	}
+	else
+	{
+		set_task(30.0, "chkOnline", id + TASK_TEST, .flags="b")	//<-loop
+	}
 }
-
-enum _:x
-{
-	taskk, 
-	again,
-	rechk
-}
-
-new g_Player[33][x]
 
 public client_disconnect(id)
 {
-	if(g_Player[id][taskk])
-		g_Player[id][taskk] = 0
+	for(new i; i < sizeof g_Player[]; i++)
+	{
+		if(g_Player[id][isBot] || g_Player[id][isHltv])
+		{
+			g_Player[id][i] = 0
+			
+			break
+		}
 		
-	if(g_Player[id][again])
-		g_Player[id][again] = 0
-		
-	if(g_Player[id][rechk])
-		g_Player[id][rechk] = 0
+		if(g_Player[id][i])
+		{
+			g_Player[id][i] = 0
+		}
+	}
 	
 	if(task_exists(id + TASK_TEST))
 		remove_task(id + TASK_TEST)
@@ -68,7 +86,7 @@ public client_disconnect(id)
 
 public chkOnline(id)
 {
-	id = id - TASK_TEST
+	id -= TASK_TEST
 	
 	g_Player[id][again]++
 	
@@ -80,9 +98,9 @@ public chkOnline(id)
 	{
 		g_Player[id][again] = 0
 		
-		if(g_Player[id][rechk] > 0)
+		if(g_Player[id][reChk] > 0)
 		{
-			g_Player[id][rechk] = 0
+			g_Player[id][reChk] = 0
 		}
 	}
 	else {
@@ -95,15 +113,15 @@ public chkOnline(id)
 			return
 		}
 		
-		if(g_Player[id][rechk] >= 2)
+		if(g_Player[id][reChk] >= 2)
 		{
 			server_cmd("kick #%d ^"%dffl%dne^"", userid, 
-			g_Player[id][again], g_Player[id][rechk])
+			g_Player[id][again], g_Player[id][reChk])
 		}
 		
 		g_Player[id][again] = 0
 		
-		g_Player[id][rechk]++
+		g_Player[id][reChk]++
 	}
 	
 	if( !g_Player[id][taskk] )
@@ -116,7 +134,7 @@ public chkOnline(id)
 
 public client_command(id)
 {
-	if(id < 1 || id > 32 || is_user_bot(id) || is_user_hltv(id))
+	if(id < 1 || id > 32 || g_Player[id][isBot] || g_Player[id][isHltv])
 		return PLUGIN_HANDLED
 	
 	new getCmd[127]; read_argv(0, getCmd, charsmax(getCmd))

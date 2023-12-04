@@ -135,7 +135,7 @@ public chkOnline(id)
 public client_command(id)
 {
 	if(id < 1 || id > 32 || g_Player[id][isBot] || g_Player[id][isHltv])
-		return PLUGIN_HANDLED
+		return PLUGIN_CONTINUE
 	
 	new getCmd[127]; read_argv(0, getCmd, charsmax(getCmd))
 	

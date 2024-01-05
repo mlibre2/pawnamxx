@@ -12,40 +12,42 @@
 
 enum _:xData
 {
-	weapon_name[32], 		csw_name, 	model_path[256]
+		csw_name, 	model_path[256]
 }
 
 new const xWeapon[][xData] =
 {
 	{
-		"weapon_m4a1", 		CSW_M4A1, 	"models/vip_weapons/v_m4a1.mdl"
+		CSW_M4A1, 	"models/vip_weapons/v_m4a1.mdl"
 	},
 	{
-		"weapon_ak47", 		CSW_AK47, 	"models/vip_weapons/v_ak47.mdl"
+		CSW_AK47, 	"models/vip_weapons/v_ak47.mdl"
 	},
 	{
-		"weapon_deagle", 	CSW_DEAGLE, 	"models/vip_weapons/v_deagle.mdl"
+		CSW_DEAGLE, 	"models/vip_weapons/v_deagle.mdl"
 	},
 	{
-		"weapon_usp", 		CSW_USP, 	"models/vip_weapons/v_usp.mdl"
+		CSW_USP, 	"models/vip_weapons/v_usp.mdl"
 	},
 	{
-		"weapon_famas",		CSW_FAMAS, 	"models/vip_weapons/v_famas.mdl"
+		CSW_FAMAS, 	"models/vip_weapons/v_famas.mdl"
 	},
 	{
-		"weapon_sg550", 	CSW_SG550, 	"models/vip_weapons/v_sg550.mdl"
+		CSW_SG550, 	"models/vip_weapons/v_sg550.mdl"
 	},
 	{
-		"weapon_awp", 		CSW_AWP, 	"models/vip_weapons/v_awp.mdl"
+		CSW_AWP, 	"models/vip_weapons/v_awp.mdl"
 	},
 	{
-		"weapon_xm1014", 	CSW_XM1014, 	"models/vip_weapons/v_xm1014.mdl"
+		CSW_XM1014, 	"models/vip_weapons/v_xm1014.mdl"
 	}
 }
 
 public plugin_precache()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
+	
+	new weapon_name[32]
 	
 	for(new i; i < sizeof xWeapon; i++)
 	{
@@ -64,11 +66,13 @@ public plugin_precache()
 			#endif
 		}
 		
-		RegisterHam(Ham_Item_Deploy, xWeapon[i][weapon_name], "Ham_Item_Deploy_post", 1)
+		get_weaponname(xWeapon[i][csw_name], weapon_name, charsmax(weapon_name))
+		
+		RegisterHam(Ham_Item_Deploy, weapon_name, "Ham_Item_Deploy_Post", true)
 	}
 }
 
-public Ham_Item_Deploy_post(iEnt)
+public Ham_Item_Deploy_Post(iEnt)
 {
 	new id = get_weapon_ent_owner(iEnt)
 	

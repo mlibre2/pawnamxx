@@ -19,7 +19,7 @@ new g_pWait, g_pMsg
 #endif
 
 #define PLUGIN "s!mple anti-retry"
-#define VERSION "3.6d"
+#define VERSION "3.6e"
 #define AUTHOR "mlibre"
 
 new Trie:g_Id, g_pImmunity, g_pType
@@ -129,16 +129,11 @@ stock encode(const str[])
 #if defined RUN_CMD
 public Ham_SpawnPlayer_Post(const id) 
 {
-	if( !is_user_alive(id) ) 
-		return HAM_IGNORED
-	
-	if(is_user_retry[id])
+	if(is_user_retry[id] && is_user_alive(id))
 	{
 		server_cmd("amx_infect #%d", get_user_userid(id))
 		
 		is_user_retry[id] = false
 	}
-	
-	return HAM_IGNORED
 }
 #endif 

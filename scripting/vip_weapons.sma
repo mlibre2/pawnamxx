@@ -8,10 +8,6 @@
 #define VERSION "1.x"
 #define AUTHOR "mlibre"
 
-public plugin_init() {
-	register_plugin(PLUGIN, VERSION, AUTHOR)
-}
-
 #define	VipFlag	ADMIN_LEVEL_C
 
 enum _:xData
@@ -49,6 +45,8 @@ new const xWeapon[][xData] =
 
 public plugin_precache()
 {
+	register_plugin(PLUGIN, VERSION, AUTHOR)
+	
 	for(new i; i < sizeof xWeapon; i++)
 	{
 		if(file_exists(xWeapon[i][model_path]))

@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "Say Sound"
-#define VERSION "2.0"
+#define VERSION "2.1"
 #define AUTHOR "mlibre"
 
 new const sound_list[][] =
@@ -12,6 +12,8 @@ new const sound_list[][] =
 	"sound/music_4.wav"
 }
 
+new type_sound
+
 public plugin_precache()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
@@ -21,7 +23,9 @@ public plugin_precache()
 	
 	for(new i; i < sizeof sound_list; i++)
 	{
-		if(chk_sound(i) && file_exists(sound_list[i]))
+		chk_sound(i)
+		
+		if(type_sound > 0 && file_exists(sound_list[i]))
 		{
 			precache_generic(sound_list[i])
 		}
@@ -34,21 +38,17 @@ public plugin_precache()
 
 public set_sound(id)
 {
-	new message[191]
-    
-	read_args(message, charsmax(message))
-    
-	remove_quotes(message)
-    
-	if( !message[0] || message[0] == '/' )
-		return PLUGIN_HANDLED_MAIN
-    
-	play_sound(0)
+	new message[2]
 	
-	return PLUGIN_CONTINUE
+	read_args(message, charsmax(message))
+	
+	remove_quotes(message)
+	
+	if(message[0] && message[0] != '/')
+	{
+		play_sound(0)	//id=only you listen / 0=everyone listens "the sound list"
+	}
 }
-
-new type_sound
 
 stock chk_sound(wav_or_mp3)
 {
@@ -57,22 +57,16 @@ stock chk_sound(wav_or_mp3)
 		case 'v': 
 		{
 			type_sound = 1
-			
-			return PLUGIN_HANDLED
 		}
 		case '3': 
 		{
 			type_sound = 2
-			
-			return PLUGIN_HANDLED
 		}
 		default: 
 		{
 			type_sound = 0
 		}
 	}
-	
-	return PLUGIN_CONTINUE
 }
 
 stock play_sound(id)

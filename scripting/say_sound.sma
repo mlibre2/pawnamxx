@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "Say Sound"
-#define VERSION "2.1"
+#define VERSION "2.2"
 #define AUTHOR "mlibre"
 
 new const sound_list[][] =
@@ -41,8 +41,6 @@ public set_sound(id)
 	new message[2]
 	
 	read_args(message, charsmax(message))
-	
-	remove_quotes(message)
 	
 	if(message[0] && message[0] != '/')
 	{

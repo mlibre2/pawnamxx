@@ -2,7 +2,7 @@
 #include <engine>
 
 #define PLUGIN "Bot Freeze"
-#define VERSION "1.0"
+#define VERSION "1.1"
 #define AUTHOR "mlibre"
 
 new const bot_cvar[][] =
@@ -33,8 +33,6 @@ public plugin_cfg()
 			break
 		}
 	}
-	
-	mp_bot_freezetime = get_pcvar_num(mp_bot_freezetime)
 }
 
 public logevent_round_start()
@@ -44,7 +42,7 @@ public logevent_round_start()
 		remove_task(666)
 	}
 	
-	set_task(float(mp_bot_freezetime), "bot_task", 666)
+	set_task(float(get_pcvar_num(mp_bot_freezetime)), "bot_task", 666)
 	
 	bot_action(1)
 }

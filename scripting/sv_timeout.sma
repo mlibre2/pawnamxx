@@ -84,6 +84,8 @@ public client_disconnect(id)
 		remove_task(id + TASK_TEST)
 }
 
+new const g_key[] = "&@"
+
 public chkOnline(id)
 {
 	id -= TASK_TEST
@@ -92,7 +94,7 @@ public chkOnline(id)
 	
 	if(g_Player[id][again] == 1)	//->putinserver & loop!
 	{
-		client_cmd(id, "onl1ne")
+		client_cmd(id, g_key)
 	}
 	else if(g_Player[id][again] == 3)	//->client_command
 	{
@@ -137,9 +139,9 @@ public client_command(id)
 	if(id < 1 || id > 32 || g_Player[id][isBot] || g_Player[id][isHltv])
 		return PLUGIN_CONTINUE
 	
-	new getCmd[127]; read_argv(0, getCmd, charsmax(getCmd))
+	new getCmd[3]; read_argv(0, getCmd, charsmax(getCmd))
 	
-	if(strlen(getCmd) == 6 && equal(getCmd, "onl1ne"))
+	if(getCmd[strlen(getCmd) - 2] == g_key[0])
 	{
 		g_Player[id][again]++	//<- 2
 		

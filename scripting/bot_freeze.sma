@@ -3,7 +3,7 @@
 #include <hamsandwich>
 
 #define PLUGIN "Bot Freeze"
-#define VERSION "1.2"
+#define VERSION "1.2a"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM > 182
@@ -114,7 +114,7 @@ stock bot_action(y)
 		case 1,2: set_cvar_num(bot_cvar[bot_enum[type]], y)
 		default:
 		{
-			new bots[32], maxbots
+			new bots[MAX_PLAYERS], maxbots
 			
 			get_players(bots, maxbots, "adh")
 			

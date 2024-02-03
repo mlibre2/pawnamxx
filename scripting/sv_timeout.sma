@@ -84,7 +84,7 @@ public client_disconnect(id)
 		remove_task(id + TASK_TEST)
 }
 
-new const g_key[] = "&@"
+new const g_key[] = "@"
 
 public chkOnline(id)
 {
@@ -139,9 +139,9 @@ public client_command(id)
 	if(id < 1 || id > 32 || g_Player[id][isBot] || g_Player[id][isHltv])
 		return PLUGIN_CONTINUE
 	
-	new getCmd[3]; read_argv(0, getCmd, charsmax(getCmd))
+	new getCmd[2]; read_argv(0, getCmd, charsmax(getCmd))
 	
-	if(getCmd[strlen(getCmd) - 2] == g_key[0])
+	if(getCmd[strlen(getCmd) - 1] == g_key[0])
 	{
 		g_Player[id][again]++	//<- 2
 		

@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "autoResetStats"
-#define VERSION "1.0"
+#define VERSION "1.1"
 #define AUTHOR "mlibre"
 
 new const cvar_csx[] = "csstats_reset"
@@ -9,6 +9,11 @@ new const cvar_csx[] = "csstats_reset"
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
+	register_cvar(PLUGIN, VERSION, FCVAR_SERVER | FCVAR_SPONLY)
+}
+
+public plugin_cfg()
+{
 	if(cvar_exists(cvar_csx))
 	{
 		autoResetStats()
@@ -21,6 +26,8 @@ public plugin_init() {
 
 autoResetStats()
 {
+	set_cvar_num(cvar_csx, 0)
+	
 	server_print("[%s] Checking day!", PLUGIN)
 	
 	new file[] = "topReset"

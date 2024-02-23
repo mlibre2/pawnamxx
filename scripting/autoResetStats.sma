@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "autoResetStats"
-#define VERSION "1.1"
+#define VERSION "1.2"
 #define AUTHOR "mlibre"
 
 new const cvar_csx[] = "csstats_reset"
@@ -30,32 +30,30 @@ autoResetStats()
 	
 	server_print("[%s] Checking day!", PLUGIN)
 	
-	new file[] = "topReset"
-	
 	new getDay[3]; get_time("%d", getDay, charsmax(getDay))
 	
 	if(equal(getDay, "01")) //<-every first day of the month
 	{
-		if(chk(file[0]))
+		if(chk(PLUGIN))
 		{
 			server_print("[%s] The statistics have already been reset this month!", PLUGIN)
 			
 			return
 		}
 		
-		set_cvar_num(cvar_csx, 1)
+		//set_cvar_num(cvar_csx, 1)
 		
 		server_print("[%s] Statistics have been reset!", PLUGIN)
 		
-		new fp = fopen(file, "w"); fclose(fp)
+		new fp = fopen(PLUGIN, "w"); fclose(fp)
 	}
 	else
 	{
 		server_print("[%s] It's not time!", PLUGIN)
 		
-		if(chk(file[0]))
+		if(chk(PLUGIN))
 		{
-			delete_file(file)
+			delete_file(PLUGIN)
 		}
 	}
 }

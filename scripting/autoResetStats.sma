@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "autoResetStats"
-#define VERSION "1.2"
+#define VERSION "1.2a"
 #define AUTHOR "mlibre"
 
 new const cvar_csx[] = "csstats_reset"
@@ -41,7 +41,7 @@ autoResetStats()
 			return
 		}
 		
-		//set_cvar_num(cvar_csx, 1)
+		set_cvar_num(cvar_csx, 1)
 		
 		server_print("[%s] Statistics have been reset!", PLUGIN)
 		

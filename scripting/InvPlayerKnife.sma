@@ -4,9 +4,15 @@
 #include <fun>
 #include <cstrike>
 
+#if AMXX_VERSION_NUM < 183
+	#define MAX_PLAYERS 32
+#endif
+
 #define PLUGIN "Inv. Player with Knife"
-#define VERSION "1.0"
+#define VERSION "1.1"
 #define AUTHOR "mlibre"
+
+new bool:isKnife[MAX_PLAYERS + 1]
 
 new const ent_names[][] =
 {
@@ -63,14 +69,21 @@ public Ham_Item_Deploy_Post(iEnt)
 	
 	if( !is_user_connected(iPlayer) )
 		return HAM_IGNORED
-			
-	if(cs_get_weapon_id(iEnt) == CSW_KNIFE)
+		
+	if( !isKnife[iPlayer] )
 	{
-		set_user_rendering(iPlayer, kRenderFxNone, 0, 0, 0, kRenderTransAlpha, 0)
+		if(cs_get_weapon_id(iEnt) == CSW_KNIFE)
+		{
+			set_user_rendering(iPlayer, kRenderFxNone, 0, 0, 0, kRenderTransAlpha, 0)
+			
+			isKnife[iPlayer] = true
+		}
 	}
 	else
 	{
 		set_user_rendering(iPlayer)
+		
+		isKnife[iPlayer] = false
 	}
 	
 	return HAM_IGNORED

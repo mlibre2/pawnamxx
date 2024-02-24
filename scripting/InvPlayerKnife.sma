@@ -1,15 +1,20 @@
+//#define METHOD_ENGINE
+
 #include <amxmodx>
 #include <hamsandwich>
 #include <engine>
 #include <fun>
-#include <cstrike>
+
+#if !defined METHOD_ENGINE
+	#include <cstrike>
+#endif
 
 #if AMXX_VERSION_NUM < 183
 	#define MAX_PLAYERS 32
 #endif
 
 #define PLUGIN "Inv. Player with Knife"
-#define VERSION "1.1"
+#define VERSION "1.2"
 #define AUTHOR "mlibre"
 
 new bool:isKnife[MAX_PLAYERS + 1]
@@ -70,6 +75,8 @@ public Ham_Item_Deploy_Post(iEnt)
 	if( !is_user_connected(iPlayer) )
 		return HAM_IGNORED
 		
+	#if !defined METHOD_ENGINE
+		
 	if( !isKnife[iPlayer] )
 	{
 		if(cs_get_weapon_id(iEnt) == CSW_KNIFE)
@@ -85,6 +92,28 @@ public Ham_Item_Deploy_Post(iEnt)
 		
 		isKnife[iPlayer] = false
 	}
+	
+	#else
+		
+	new szWeapon[13]; entity_get_string(iEnt, EV_SZ_classname, szWeapon, charsmax(szWeapon))
+	
+	if(contain(szWeapon, ent_names[28]) != -1) 
+	{
+		set_user_rendering(iPlayer, kRenderFxNone, 0, 0, 0, kRenderTransAlpha, 0)
+		
+		isKnife[iPlayer] = true
+	}
+	else
+	{
+		if(isKnife[iPlayer])
+		{
+			set_user_rendering(iPlayer)
+		
+			isKnife[iPlayer] = false
+		}
+	}
+	
+	#endif
 	
 	return HAM_IGNORED
 }

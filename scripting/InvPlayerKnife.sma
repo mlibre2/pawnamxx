@@ -1,20 +1,24 @@
-//#define METHOD_ENGINE
+#define USE_CSTRIKE
+//#define USE_FUN
 
 #include <amxmodx>
 #include <hamsandwich>
 #include <engine>
-#include <fun>
 
 #if AMXX_VERSION_NUM < 183
 	const MAX_PLAYERS = 32
 #endif
 
-#if !defined METHOD_ENGINE
+#if defined USE_CSTRIKE
 	native cs_get_weapon_id(index)
 #endif
 
+#if defined USE_FUN
+	native set_user_rendering(index, fx = kRenderFxNone, r = 0, g = 0, b = 0, render = kRenderNormal, amount = 0)
+#endif
+
 #define PLUGIN "InvisiblePlayerKnife"
-#define VERSION "1.3"
+#define VERSION "1.4"
 #define AUTHOR "mlibre"
 
 new bool:isKnife[MAX_PLAYERS + 1]
@@ -45,42 +49,47 @@ public Ham_Item_Deploy_Post(iWeapon)
 	if( !is_user_connected(iPlayer) )
 		return HAM_IGNORED
 		
-	#if !defined METHOD_ENGINE
-	
 	if(isKnife[iPlayer])
 	{
-		set_user_rendering(iPlayer)
-		
-		isKnife[iPlayer] = false
+		set_render(iPlayer, false)
 	}
+	
+	#if defined USE_CSTRIKE
+	
 	else if(cs_get_weapon_id(iWeapon) == CSW_KNIFE)
 	{
-		set_user_rendering(iPlayer, kRenderFxNone, 0, 0, 0, kRenderTransAlpha, 0)
-		
-		isKnife[iPlayer] = true
+		set_render(iPlayer, true)
 	}
 	
 	#else
 	
-	if(isKnife[iPlayer])
-	{
-		set_user_rendering(iPlayer)
-		
-		isKnife[iPlayer] = false
-	}
 	else
 	{
 		new szWeapon[9]; entity_get_string(iWeapon, EV_SZ_classname, szWeapon, charsmax(szWeapon))
 		
 		if(szWeapon[7] == 'k')
 		{
-			set_user_rendering(iPlayer, kRenderFxNone, 0, 0, 0, kRenderTransAlpha, 0)
-			
-			isKnife[iPlayer] = true
+			set_render(iPlayer, true)
 		}
 	}
 	
 	#endif
 	
 	return HAM_IGNORED
+}
+
+stock set_render(iPlayer, x)
+{
+	#if !defined USE_FUN
+	
+	entity_set_int(iPlayer, EV_INT_rendermode, x ? kRenderTransAlpha : kRenderNormal)
+	entity_set_float(iPlayer, EV_FL_renderamt, x ? 0.0 : 255.0)
+	
+	#else
+	
+	set_user_rendering(x ? iPlayer, kRenderFxNone, 0, 0, 0, kRenderTransAlpha, 0 : iPlayer)
+	
+	#endif
+	
+	isKnife[iPlayer] = (x ? true : false)
 }

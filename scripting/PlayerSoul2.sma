@@ -3,7 +3,7 @@
 #include <engine>
 
 #define PLUGIN "Player Soul"
-#define VERSION "2.2"
+#define VERSION "2.3"
 #define AUTHOR "mlibre"
 
 new g_iCvarScreenFade, g_fCvarTransparency, g_fCvarVelocity
@@ -41,11 +41,15 @@ public Ham_KilledPlayer_Post(id, attacker)
 	new szModel[256]; formatex(szModel, charsmax(szModel), "models/player/%s/%s.mdl", szInfo, szInfo)
 	
 	//antiCrash!
-	if(containi(szModel, ".mdl") == strlen(szModel) - 4)
+	if(szModel[strlen(szModel) - 4] == '.' 
+	&& szModel[strlen(szModel) - 3] == 'm'
+	&& szModel[strlen(szModel) - 2] == 'd'
+	&& szModel[strlen(szModel) - 1] == 'l')
 	{
 		entity_set_model(ent, szModel)
 	}
-	else {
+	else 
+	{
 		log_amx("%s *** overflow!", szModel)
 		
 		entity_set_model(ent, "models/player.mdl")

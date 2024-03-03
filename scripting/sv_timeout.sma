@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "fix overflow/datagram"
-#define VERSION "1.x"
+#define VERSION "1.3"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM > 182
@@ -137,17 +137,13 @@ public chkOnline(id)
 public client_command(id)
 {
 	if(id < 1 || id > 32 || g_Player[id][isBot] || g_Player[id][isHltv])
-		return PLUGIN_CONTINUE
+		return
 	
 	new getCmd[2]; read_argv(0, getCmd, charsmax(getCmd))
 	
-	if(getCmd[strlen(getCmd) - 1] == g_key[0])
+	if(getCmd[0] == g_key[0])
 	{
 		g_Player[id][again]++	//<- 2
-		
-		return PLUGIN_HANDLED
 	}
-	
-	return PLUGIN_CONTINUE
 }
 #endif

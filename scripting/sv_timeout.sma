@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "fix overflow/datagram"
-#define VERSION "1.3"
+#define VERSION "1.3a"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM > 182
@@ -14,6 +14,7 @@
 
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
+	register_cvar(PLUGIN, VERSION, FCVAR_SERVER | FCVAR_SPONLY)
 }
 
 //----------------------------------------------------------------------------
@@ -137,13 +138,17 @@ public chkOnline(id)
 public client_command(id)
 {
 	if(id < 1 || id > 32 || g_Player[id][isBot] || g_Player[id][isHltv])
-		return
+		return PLUGIN_CONTINUE
 	
 	new getCmd[2]; read_argv(0, getCmd, charsmax(getCmd))
 	
 	if(getCmd[0] == g_key[0])
 	{
 		g_Player[id][again]++	//<- 2
+		
+		return PLUGIN_HANDLED
 	}
+	
+	return PLUGIN_CONTINUE
 }
 #endif

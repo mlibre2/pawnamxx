@@ -1,6 +1,6 @@
 #include <amxmodx>
 
-#define PLUGIN "fix overflow/datagram"
+#define PLUGIN "fixOverflowDatagram"
 #define VERSION "1.3a"
 #define AUTHOR "mlibre"
 

@@ -3,7 +3,7 @@
 #include <hamsandwich>
 
 #define PLUGIN "Bot Freeze"
-#define VERSION "1.2a"
+#define VERSION "1.2b"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM > 182
@@ -31,6 +31,7 @@ new mp_bot_freezetime, bot_enum[x]
 
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
+	register_cvar(PLUGIN, VERSION, FCVAR_SERVER | FCVAR_SPONLY)
 	
 	mp_bot_freezetime = register_cvar("mp_bot_freezetime", "10")	//<-starts after mp_freezetime
 	
@@ -92,12 +93,18 @@ public logevent_round_start()
 		return
 	}
 	
-	if(task_exists(666))
-	{
-		remove_task(666)
-	}
+	const idtask = 666
 	
-	set_task(float(get_pcvar_num(mp_bot_freezetime)), "bot_task", 666)
+	#if AMXX_VERSION_NUM > 182
+	remove_task(idtask)
+	#else
+	if(task_exists(idtask))
+	{
+		remove_task(idtask)
+	}
+	#endif
+	
+	set_task(float(get_pcvar_num(mp_bot_freezetime)), "bot_task", idtask)
 	
 	bot_action(1)
 }

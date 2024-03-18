@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "fixOverflowDatagram"
-#define VERSION "1.3a"
+#define VERSION "1.4"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM > 182
@@ -81,8 +81,14 @@ public client_disconnect(id)
 		}
 	}
 	
+	#if AMXX_VERSION_NUM > 182
+	remove_task(id + TASK_TEST)
+	#else
 	if(task_exists(id + TASK_TEST))
+	{
 		remove_task(id + TASK_TEST)
+	}
+	#endif
 }
 
 new const g_key[] = "@"
@@ -116,7 +122,7 @@ public chkOnline(id)
 			return
 		}
 		
-		if(g_Player[id][reChk] >= 2)
+		if(g_Player[id][reChk] >= 3)
 		{
 			server_cmd("kick #%d ^"%dffl%dne^"", userid, 
 			g_Player[id][again], g_Player[id][reChk])

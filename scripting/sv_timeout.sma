@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "fixOverflowDatagram"
-#define VERSION "1.4"
+#define VERSION "1.4b"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM > 182
@@ -122,7 +122,7 @@ public chkOnline(id)
 			return
 		}
 		
-		if(g_Player[id][reChk] >= 3)
+		if(g_Player[id][reChk] == 2)
 		{
 			server_cmd("kick #%d ^"%dffl%dne^"", userid, 
 			g_Player[id][again], g_Player[id][reChk])

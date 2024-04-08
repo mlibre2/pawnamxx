@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "amx_slayteam"
-#define VERSION "1.0"
+#define VERSION "1.0a"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM < 183
@@ -26,7 +26,7 @@ public cmdSlay(id)
 		return PLUGIN_HANDLED
 	}
 	
-	new arg[2], x, y, players[MAX_PLAYERS], playernum
+	new arg[MAX_PLAYERS / 16], x
 	
 	read_argv(1, arg, charsmax(arg))
 	
@@ -50,6 +50,8 @@ public cmdSlay(id)
 		
 		return PLUGIN_HANDLED
 	}
+	
+	new players[MAX_PLAYERS], playernum, y
 	
 	get_players(players, playernum, "ae", x == 1 ? "TERRORIST" : "CT")
 	

@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "amx_slayteam"
-#define VERSION "1.0b"
+#define VERSION "1.0c"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM < 183
@@ -54,6 +54,13 @@ public cmdSlay(id)
 	new players[MAX_PLAYERS], playernum
 	
 	get_players(players, playernum, "ae", x == 1 ? "TERRORIST" : "CT")
+
+	if( !playernum )
+	{
+		console_print(id, "[%s] no hay ^"%s's^" vivos!", PLUGIN, x == 1 ? "TT" : "CT")
+		
+		return PLUGIN_HANDLED
+	}
 	
 	for(new i, j; i < playernum; i++)
 	{
@@ -67,13 +74,6 @@ public cmdSlay(id)
 		}
 		
 		user_kill(j, 0)
-	}
-	
-	if( !playernum )
-	{
-		console_print(id, "[%s] no hay ^"%s's^" vivos!", PLUGIN, x == 1 ? "TT" : "CT")
-		
-		return PLUGIN_HANDLED
 	}
 	
 	new nick[MAX_NAME_LENGTH]; get_user_name(id, nick, charsmax(nick))

@@ -2,10 +2,10 @@
 #include <engine>
 
 #define PLUGIN "AutoMonsterSpawn" 
-#define VERSION "1.1"
+#define VERSION "1.2"
 #define AUTHOR "mlibre"
 
-new Array:monster_names
+new Array:monster_names, loaded_monster
 
 new mp_round_restart_delay
 
@@ -28,15 +28,31 @@ public plugin_cfg()
 		monster_fail("monster module")
 	}
 	
-	new cfg[] = "monster_precache.cfg"
+	new monster_cfg[] = "monster_precache.cfg"
 	
-	if(file_exists(cfg))
+	if(file_exists(monster_cfg))
 	{
-		new file = fopen(cfg, "rt"), output[15], a
+		new monster_supported_linux[][] =
+		{
+			"agrunt", "apache", "barney", "bigmomma", "bullsquid", "controller", 
+			"hassassin", "headcrab", "hgrunt", "houndeye", "islave", "scientist", 
+			"snark", "zombie"
+		}
+		
+		new monster_supported_windows[][] =
+		{
+			"agrunt", "apache", "barnacle", "barney", "bigmomma", "bloater", 
+			"bullsquid", "controller", "gargantua", "babygarg", "gman", "hassassin", 
+			"headcrab", "hgrunt", "houndeye", "ichthyosaur", "islave", "leech", 
+			"scientist", "snark", "tentacle", "zombie", "rat", "roach", "gonome", 
+			"massn", "otis", "gruntcmdr", "barneydead", "hgruntdead"
+		}
+		
+		new file = fopen(monster_cfg, "rt"), output[15], os = is_linux_server()
 		
 		if( !file )
 		{
-			monster_fail(cfg)
+			monster_fail(monster_cfg)
 		}
 		
 		while(fgets(file, output, charsmax(output)))
@@ -47,27 +63,49 @@ public plugin_cfg()
 			|| output[0] == ' ' 
 			|| output[0] == '/' 
 			|| output[0] == EOS 
-			|| output[0] == ';' 
-			)
+			|| output[0] == ';' )
 			{
 				continue
 			}
 			
-			a++
-			
-			ArrayPushString(monster_names, output)
+			if(os)
+			{
+				for(new i; i < sizeof monster_supported_linux; i++)
+				{
+					if(equal(output, monster_supported_linux[i]))
+					{
+						ArrayPushString(monster_names, output)
+							
+						break
+					}
+				}
+			}
+			else
+			{
+				for(new i; i < sizeof monster_supported_windows; i++)
+				{
+					if(equal(output, monster_supported_windows[i]))
+					{
+						ArrayPushString(monster_names, output)
+							
+						break
+					}
+				}
+			}
 		}
 		
 		fclose(file)
 		
-		if( !a )
+		loaded_monster = ArraySize(monster_names)
+		
+		if( !loaded_monster )
 		{
 			monster_fail("monster names")
 		}
 	}
 	else
 	{
-		monster_fail(cfg)
+		monster_fail(monster_cfg)
 	}
 	
 	mp_round_restart_delay = get_cvar_pointer("mp_round_restart_delay")
@@ -80,11 +118,12 @@ public logevent_round_start()
 	if( !num )
 		return
 		
-	ArrayGetString(monster_names, random(ArraySize(monster_names)), selected_monster, charsmax(selected_monster))
+	ArrayGetString(monster_names, random(loaded_monster), selected_monster, charsmax(selected_monster))
 	
 	set_hudmessage(255, 0, 0, -1.0, -1.0, 0, 6.0, 5.0)
 	show_hudmessage(0, ":: Monster Spawned ::^n%s", selected_monster)
 	
+	//Warning: Do not enable too many monsters, or else your server may crash!
 	server_cmd("monster %s #%d", selected_monster, players[random(num)])
 }
 

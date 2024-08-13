@@ -2,7 +2,7 @@
 #include <engine>
 
 #define PLUGIN "AutoMonsterSpawn" 
-#define VERSION "1.2"
+#define VERSION "1.2c"
 #define AUTHOR "mlibre"
 
 new Array:monster_names, loaded_monster
@@ -37,9 +37,8 @@ public plugin_cfg()
 			"agrunt", "apache", "barney", "bigmomma", "bullsquid", "controller", 
 			"hassassin", "headcrab", "hgrunt", "houndeye", "islave", "scientist", 
 			"snark", "zombie"
-		}
-		
-		new monster_supported_windows[][] =
+		},
+		monster_supported_windows[][] =
 		{
 			"agrunt", "apache", "barnacle", "barney", "bigmomma", "bloater", 
 			"bullsquid", "controller", "gargantua", "babygarg", "gman", "hassassin", 
@@ -68,28 +67,13 @@ public plugin_cfg()
 				continue
 			}
 			
-			if(os)
+			for(new i; i < os ? sizeof monster_supported_linux : sizeof monster_supported_windows; i++)
 			{
-				for(new i; i < sizeof monster_supported_linux; i++)
+				if(equal(output, os ? monster_supported_linux[i] : monster_supported_windows[i]))
 				{
-					if(equal(output, monster_supported_linux[i]))
-					{
-						ArrayPushString(monster_names, output)
-							
-						break
-					}
-				}
-			}
-			else
-			{
-				for(new i; i < sizeof monster_supported_windows; i++)
-				{
-					if(equal(output, monster_supported_windows[i]))
-					{
-						ArrayPushString(monster_names, output)
-							
-						break
-					}
+					ArrayPushString(monster_names, output)
+						
+					break
 				}
 			}
 		}

@@ -3,7 +3,7 @@
 #include <hamsandwich>
 
 #define PLUGIN "Admin Model"
-#define VERSION "1.5a"
+#define VERSION "1.5b"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM > 182
@@ -65,7 +65,7 @@ public plugin_init() {
 	#else
 	RegisterHamPlayer(Ham_Spawn, "Ham_SpawnPlayer_Post", true)
 	#endif
-
+	
 	g_random = register_cvar("admin_model_random", "0") //0=disabled - 1=random selection
 }
 
@@ -73,7 +73,7 @@ public client_putinserver(id)
 {
 	new getFlags = get_user_flags(id)
 	
-	g_bAdmin[id] = (getFlags & ADMIN_FLAG_1 ? 1 : getFlags & ADMIN_FLAG_2 ? 2 : 0)
+	g_bAdmin[id] = (getFlags & ADMIN_FLAG_1 ? ADMIN_FLAG_1 : getFlags & ADMIN_FLAG_2 ? ADMIN_FLAG_2 : 0)
 }
 
 public client_disconnect(id)
@@ -96,14 +96,14 @@ public Ham_SpawnPlayer_Post(const id)
 			else {
 				switch(g_bAdmin[id]) 
 				{
-					case 1: 
+					case ADMIN_FLAG_1: 
 					{
 						if(selected[id] != 0)
 						{
 							selected[id] = 0
 						}
 					}
-					case 2: 
+					case ADMIN_FLAG_2: 
 					{
 						if(selected[id] != 1)
 						{
@@ -131,7 +131,7 @@ stock precache_model_x(mdl[])
 stock precache_fail(str[])
 {
 	#if AMXX_VERSION_NUM <= 182
-	new sfs[64]; formatex(sfs, charsmax(sfs), "%s does not exist...", str)
+	new sfs[MAX_PLAYERS * 2]; formatex(sfs, charsmax(sfs), "%s does not exist...", str)
 	
 	set_fail_state(sfs)
 	#else

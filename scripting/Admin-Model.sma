@@ -3,7 +3,7 @@
 #include <hamsandwich>
 
 #define PLUGIN "Admin Model"
-#define VERSION "1.5"
+#define VERSION "1.5a"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM > 182
@@ -54,6 +54,8 @@ public plugin_precache()
 	}
 }
 
+new g_random
+
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	register_cvar(PLUGIN, VERSION, FCVAR_SERVER | FCVAR_SPONLY)
@@ -63,12 +65,7 @@ public plugin_init() {
 	#else
 	RegisterHamPlayer(Ham_Spawn, "Ham_SpawnPlayer_Post", true)
 	#endif
-}
 
-new g_random
-
-public plugin_cfg()
-{
 	g_random = register_cvar("admin_model_random", "0") //0=disabled - 1=random selection
 }
 

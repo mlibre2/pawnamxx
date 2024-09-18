@@ -4,7 +4,7 @@
 #include <hamsandwich>
 
 #define PLUGIN "If not shooting gun/Punish"
-#define VERSION "1.3"
+#define VERSION "1.4"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM < 183
@@ -30,7 +30,13 @@ Credits:
 
 Changelog:
 
-	v1.3
+	v1.4
+	-two stocks were created to obtain the number of players per team and/or alive
+	-adjusted get_players in client_disconnect and amx_omit_punish
+	-replaced get_user_team with is_user_alive in Ham_SpawnPlayer_Post
+	-added verification in Ham_SpawnPlayer_Post to start chk if there are enough players
+	
+	v1.3 / views 6
 	-the code was decompressed and/or simplified a little to be more readable and clean.
 	-reorganized cvars
 	-amx_time_no_shoot changed from 90 to 60 seconds
@@ -119,7 +125,7 @@ Lang support: (if_not_shooting_punish.txt)
 Support: (If you find an bug or can optimize the code, all suggestions are welcome.)
 
 	-https://forums.alliedmods.net/showthread.php?t=285303
-	-https://amxmodx-es.com/Thread-Si-no-dispara-el-arma-Castigar-v1-2
+	-https://amxmodx-es.com/Thread-Si-no-dispara-el-arma-Castigar-v1-4
 */
 
 enum _:cvars_name 
@@ -163,6 +169,12 @@ const id_task = 666
 #define m_pPlayer 41
 #define m_iId 43
 #define m_iClientClip 52
+
+enum
+{
+	TERRORIST = 1,
+	CT
+}
 
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
@@ -235,11 +247,14 @@ public plugin_cfg()
 
 public Ham_SpawnPlayer_Post(id)
 {
-	if( !g_started && get_user_team(id) )
+	if( !g_started && is_user_alive(id) )
 	{
-		set_task(1.0, "check_no_shoot", id_task, .flags="b")
-		
-		g_started = true
+		if(getPlayersNum(TERRORIST) && getPlayersNum(CT) )
+		{
+			set_task(1.0, "chk_no_shoot", id_task, .flags="b")
+				
+			g_started = true
+		}
 	}
 }
 
@@ -251,24 +266,12 @@ public client_disconnect(id)
 	set_task(0.1, "client_disconnect_post")
 }
 	
-public client_disconnect_post(id)
+public client_disconnect_post()
 {
 	if( !g_started )
 		return
-	
-	enum _:teams
-	{
-		TERRORIST, CT
-	}
-	
-	new team[MAX_PLAYERS], select[teams]
-	
-	for(new i; i < teams; i++)
-	{
-		get_players(team, select[i], "eh", !i ? "TERRORIST" : "CT")
-	}
-	
-	if( !select[TERRORIST] || !select[CT] )
+		
+	if( !getPlayersNum(TERRORIST) || !getPlayersNum(CT) )
 	{
 		#if AMXX_VERSION_NUM > 182
 		remove_task(id_task)
@@ -283,7 +286,7 @@ public client_disconnect_post(id)
 	}
 }
 
-public check_no_shoot() 
+public chk_no_shoot() 
 {
 	static players[MAX_PLAYERS]
 	
@@ -294,23 +297,12 @@ public check_no_shoot()
 	
 	if(get_pcvar_num(g_Cvars[amx_omit_punish])) 
 	{
-		enum _:teams
-		{
-			TERRORIST, CT
-		}
-		
-		new team[MAX_PLAYERS], select[teams]
-		
-		for(new i; i < teams; i++)
-		{
-			get_players(team, select[i], "aeh", !i ? "TERRORIST" : "CT")
-		}
-		
 		new np[6], arg[3][3]; get_pcvar_string(g_Cvars[amx_num_players], np, charsmax(np))
 		
 		parse(np, arg[0], charsmax(arg[]), arg[1], charsmax(arg[]))
 		
-		if(select[TERRORIST] == str_to_num(arg[0]) && select[CT] == str_to_num(arg[1]))
+		if(getPlayersNumAlive(TERRORIST) == str_to_num(arg[0]) 
+		&& getPlayersNumAlive(CT) == str_to_num(arg[1]))
 			return
 	}
 	
@@ -436,4 +428,22 @@ public Ham_TakeDamage_Pre(victim, inflictor, attacker, Float:damage, damagebits)
 public client_putinserver(id)
 {
 	g_count[id] = get_pcvar_num(g_Cvars[amx_time_no_shoot])
+}
+
+stock getPlayersNum(x)
+{
+	new players[MAX_PLAYERS], num
+    
+	get_players(players, num, "eh", x == 1 ? "TERRORIST" : "CT")
+    
+	return num
+}
+
+stock getPlayersNumAlive(x)
+{
+	new players[MAX_PLAYERS], num
+    
+	get_players(players, num, "aeh", x == 1 ? "TERRORIST" : "CT")
+    
+	return num
 }

@@ -4,10 +4,12 @@
 #include <hamsandwich>
 
 #define PLUGIN "If not shooting gun/Punish"
-#define VERSION "1.4"
+#define VERSION "1.4a"
 #define AUTHOR "mlibre"
 
-#if AMXX_VERSION_NUM < 183
+#if AMXX_VERSION_NUM > 182
+	#define client_disconnect client_disconnected
+#else
 	#define MAX_PLAYERS 32
 	#define MAX_IP_LENGTH 16
 	#define MAX_AUTHID_LENGTH 64
@@ -30,7 +32,10 @@ Credits:
 
 Changelog:
 
-	v1.4
+	v1.4a
+	-added client_disconnected preprocessor in case AMXX is a version greater than 182
+
+	v1.4 / views 3
 	-two stocks were created to obtain the number of players per team and/or alive
 	-adjusted get_players in client_disconnect and amx_omit_punish
 	-replaced get_user_team with is_user_alive in Ham_SpawnPlayer_Post
@@ -125,7 +130,7 @@ Lang support: (if_not_shooting_punish.txt)
 Support: (If you find an bug or can optimize the code, all suggestions are welcome.)
 
 	-https://forums.alliedmods.net/showthread.php?t=285303
-	-https://amxmodx-es.com/Thread-Si-no-dispara-el-arma-Castigar-v1-4
+	-https://amxmodx-es.com/Thread-Si-no-dispara-el-arma-Castigar-v1-2
 */
 
 enum _:cvars_name 

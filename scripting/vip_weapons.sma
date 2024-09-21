@@ -2,17 +2,21 @@
 #include <hamsandwich>
 #include <fakemeta>
 #include <engine>
-#include <cstrike>
 
 #define PLUGIN "vip_weapons"
-#define VERSION "1.x"
+#define VERSION "1.1"
 #define AUTHOR "mlibre"
 
-#define	VipFlag	ADMIN_LEVEL_C
+#if AMXX_VERSION_NUM < 183
+	#define MAX_PLAYERS 32
+	#define MAX_RESOURCE_PATH_LENGTH 64
+#endif
+
+const ADMIN_VIP_FLAG = ADMIN_LEVEL_C	//<-users.ini ; "o" - custom level C
 
 enum _:xData
 {
-		csw_name, 	model_path[256]
+		csw_name, 	model_path[MAX_RESOURCE_PATH_LENGTH]
 }
 
 new const xWeapon[][xData] =
@@ -47,9 +51,7 @@ public plugin_precache()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
-	new weapon_name[32]
-	
-	for(new i; i < sizeof xWeapon; i++)
+	for(new i, weapon_name[MAX_PLAYERS]; i < sizeof xWeapon; i++)
 	{
 		if(file_exists(xWeapon[i][model_path]))
 		{
@@ -58,7 +60,7 @@ public plugin_precache()
 		else 
 		{
 			#if AMXX_VERSION_NUM <= 182
-			new sfs[256]; formatex(sfs, charsmax(sfs), "No exist: ^"%s^"", xWeapon[i][model_path])
+			new sfs[MAX_RESOURCE_PATH_LENGTH * 2]; formatex(sfs, charsmax(sfs), "No exist: ^"%s^"", xWeapon[i][model_path])
 			
 			set_fail_state(sfs)
 			#else
@@ -72,16 +74,27 @@ public plugin_precache()
 	}
 }
 
+// offsets
+#define XO_WEAPON 4
+#define m_pPlayer 41
+#define m_iId 43
+
+enum
+{
+	TERRORIST = 1,
+	CT
+}
+
 public Ham_Item_Deploy_Post(iEnt)
 {
-	new id = get_weapon_ent_owner(iEnt)
+	new id = get_pdata_cbase(iEnt, m_pPlayer, XO_WEAPON)
 	
-	if( !is_valid_ent(id) || !is_user_alive(id) || ~get_user_flags(id) & VipFlag )
+	if(id < 1 || id > MAX_PLAYERS || !is_valid_ent(iEnt) || ~get_user_flags(id) & ADMIN_VIP_FLAG)
 		return HAM_IGNORED
-	
-	if(cs_get_user_team(id) & CS_TEAM_CT)
+			
+	if(get_user_team(id) == CT)
 	{
-		new iWeapon = cs_get_weapon_id(iEnt)
+		new iWeapon = get_pdata_int(iEnt, m_iId, XO_WEAPON)
 		
 		for(new i; i < sizeof xWeapon; i++)
 		{
@@ -95,15 +108,4 @@ public Ham_Item_Deploy_Post(iEnt)
 	}
 	
 	return HAM_IGNORED
-}
-
-stock get_weapon_ent_owner(iEnt)
-{
-	if( ~pev_valid(iEnt) & 2 )
-		return -1
-	
-	const OFFSET_WEAPONOWNER = 41
-	const OFFSET_LINUX_WEAPONS = 4
-	
-	return get_pdata_cbase(iEnt, OFFSET_WEAPONOWNER, OFFSET_LINUX_WEAPONS)
 }

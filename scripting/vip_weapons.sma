@@ -1,10 +1,15 @@
+#define USE_ENGINE	//<-alternative fakemeta
+
 #include <amxmodx>
 #include <hamsandwich>
 #include <fakemeta>
-#include <engine>
+
+#if defined USE_ENGINE
+	#include <engine>
+#endif
 
 #define PLUGIN "vip_weapons"
-#define VERSION "1.1"
+#define VERSION "1.1e"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM < 183
@@ -87,11 +92,18 @@ enum
 
 public Ham_Item_Deploy_Post(iEnt)
 {
+	#if defined USE_ENGINE
+	if( !is_valid_ent(iEnt) )
+	#else
+	if( !pev_valid(iEnt) )
+	#endif
+		return HAM_IGNORED
+		
 	new id = get_pdata_cbase(iEnt, m_pPlayer, XO_WEAPON)
 	
-	if(id < 1 || id > MAX_PLAYERS || !is_valid_ent(iEnt) || ~get_user_flags(id) & ADMIN_VIP_FLAG)
+	if(id < 1 || id > MAX_PLAYERS || ~get_user_flags(id) & ADMIN_VIP_FLAG)
 		return HAM_IGNORED
-			
+		
 	if(get_user_team(id) == CT)
 	{
 		new iWeapon = get_pdata_int(iEnt, m_iId, XO_WEAPON)
@@ -100,7 +112,11 @@ public Ham_Item_Deploy_Post(iEnt)
 		{
 			if(iWeapon == xWeapon[i][csw_name])
 			{
+				#if defined USE_ENGINE
 				entity_set_string(id, EV_SZ_viewmodel, xWeapon[i][model_path])
+				#else
+				set_pev(id, pev_viewmodel2, xWeapon[i][model_path])
+				#endif
 				
 				break
 			}

@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "fixOverflowDatagram"
-#define VERSION "1.4b"
+#define VERSION "1.4c"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM > 182
@@ -60,7 +60,7 @@ public client_putinserver(id)
 	}
 	else
 	{
-		set_task(30.0, "chkOnline", id + TASK_TEST, .flags="b")	//<-loop
+		set_task(2.0, "chkOnline", id + TASK_TEST, .flags="b")	//<-loop
 	}
 }
 

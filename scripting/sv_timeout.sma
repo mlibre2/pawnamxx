@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "fixOverflowDatagram"
-#define VERSION "1.4c"
+#define VERSION "1.4d"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM > 182
@@ -39,7 +39,7 @@ enum _:x
 {
 	isBot,
 	isHltv,
-	taskk, 
+	//taskk, 
 	again,
 	reChk
 }
@@ -60,7 +60,7 @@ public client_putinserver(id)
 	}
 	else
 	{
-		set_task(2.0, "chkOnline", id + TASK_TEST, .flags="b")	//<-loop
+		set_task(1.0, "chkOnline", id + TASK_TEST, .flags="b")	//<-loop
 	}
 }
 
@@ -133,12 +133,12 @@ public chkOnline(id)
 		g_Player[id][reChk]++
 	}
 	
-	if( !g_Player[id][taskk] )
+	/*if( !g_Player[id][taskk] )
 	{
 		g_Player[id][taskk] = 1
 		
 		change_task(id + TASK_TEST, 1.0)	//<-loop
-	}
+	}*/
 }
 
 public client_command(id)

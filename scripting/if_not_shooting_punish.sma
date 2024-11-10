@@ -4,7 +4,7 @@
 #include <hamsandwich>
 
 #define PLUGIN "If not shooting gun/Punish"
-#define VERSION "1.4a"
+#define VERSION "1.5"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM > 182
@@ -32,7 +32,10 @@ Credits:
 
 Changelog:
 
-	v1.4a
+	v1.5
+	-added knife cvar check in Ham_Weapon_SecondaryAttack
+	
+	v1.4a / views 41
 	-added client_disconnected preprocessor in case AMXX is a version greater than 182
 
 	v1.4 / views 3
@@ -409,7 +412,7 @@ public Ham_Weapon_PrimaryAttack_Post(iEnt)
 
 public Ham_Weapon_SecondaryAttack_Post(iEnt)
 {
-	if(pev_valid(iEnt))
+	if(pev_valid(iEnt) && get_pcvar_num(g_Cvars[amx_knife_attack]))
 	{
 		g_count[get_pdata_cbase(iEnt, m_pPlayer, XO_WEAPON)] = get_pcvar_num(g_Cvars[amx_time_no_shoot])
 	}

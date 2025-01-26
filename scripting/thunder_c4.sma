@@ -1,9 +1,13 @@
 #include <amxmodx>
 #include <engine>
 
-#define PLUGIN "thunder c4"
-#define VERSION "1.0"
+#define PLUGIN "thunder_c4"
+#define VERSION "1.1"
 #define AUTHOR "mlibre"
+
+#if !defined MAX_PLAYERS
+	#define MAX_PLAYERS 32
+#endif
 
 new const g_thunderSound[][] = 
 { 
@@ -25,10 +29,9 @@ public plugin_precache()
 
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
+	register_cvar(PLUGIN, VERSION, FCVAR_SERVER | FCVAR_SPONLY)
 	
-	new ent = find_ent_by_class(-1, "func_bomb_target")
-	
-	if(ent)
+	if(find_ent_by_class(-1, "func_bomb_target"))
 		register_logevent("c4_planted", 3, "2=Planted_The_Bomb")
 	else
 		pause("a")
@@ -41,38 +44,60 @@ public c4_planted()
 
 public create_thunder()
 {
-	new ent = find_ent_by_model(-1, "grenade", "models/w_c4.mdl")
+	new mdl = find_ent_by_model(-1, "grenade", "models/w_c4.mdl")
 	
-	new iOrigin[3], Float:fOrigin[3]
+	if( !is_valid_ent(mdl) )
+		return
 	
-	eng_get_brush_entity_origin(ent, fOrigin)
+	new Float:fOrigin[3]; eng_get_brush_entity_origin(mdl, fOrigin)
+	
+#if !defined message_begin_f
+	new iOrigin[3]
 	
 	iOrigin[0] = floatround(fOrigin[0])
 	iOrigin[1] = floatround(fOrigin[1])
 	iOrigin[2] = floatround(fOrigin[2])
+#endif
+	new players[MAX_PLAYERS], num; get_players(players, num, "ch")
 	
-	message_begin(MSG_PVS, SVC_TEMPENTITY, iOrigin, 0)
-	write_byte(TE_BEAMPOINTS)
-	write_coord(iOrigin[0])		//x	start position
-	write_coord(iOrigin[1])		//y
-	write_coord(iOrigin[2]-25)	//z
-	write_coord(iOrigin[0]+150)	//x	end position
-	write_coord(iOrigin[1]+150)	//y
-	write_coord(iOrigin[2]+800)	//z
-	write_short(g_thunderSpr) 
-	write_byte(1)	//frame
-	write_byte(5)	//frame rate
-	write_byte(2)	//life
-	write_byte(random_num(20,40))		//line width
-	write_byte(random_num(1500,3000))	//amplitude
-	write_byte(255)	//red
-	write_byte(255)	//blue
-	write_byte(255)	//green
-	write_byte(200)	//brightness
-	write_byte(200)	//scroll speed
-	message_end()
+	for(new i; i < num; i++)
+	{
+#if !defined message_begin_f
+		message_begin(MSG_PVS, SVC_TEMPENTITY, iOrigin, players[i])
+#else
+		message_begin_f(MSG_PVS, SVC_TEMPENTITY, fOrigin, players[i])
+#endif
+		write_byte(TE_BEAMPOINTS)
+#if !defined message_begin_f
+		write_coord(iOrigin[0])		//x	start position
+		write_coord(iOrigin[1])		//y
+		write_coord(iOrigin[2] - 25)	//z
+		write_coord(iOrigin[0] + 150)	//x	end position
+		write_coord(iOrigin[1] + 150)	//y
+		write_coord(iOrigin[2] + 800)	//z
+#else
+		write_coord_f(fOrigin[0])		//x	start position
+		write_coord_f(fOrigin[1])		//y
+		write_coord_f(fOrigin[2] - 25)	//z
+		write_coord_f(fOrigin[0] + 150)	//x	end position
+		write_coord_f(fOrigin[1] + 150)	//y
+		write_coord_f(fOrigin[2] + 800)	//z
+#endif
+		write_short(g_thunderSpr) 
+		write_byte(1)	//frame
+		write_byte(5)	//frame rate
+		write_byte(2)	//life
+		write_byte(random_num(20, 40))		//line width
+		write_byte(random_num(1500, 3000))	//amplitude
+		write_byte(255)	//red
+		write_byte(255)	//blue
+		write_byte(255)	//green
+		write_byte(200)	//brightness
+		write_byte(200)	//scroll speed
+		message_end()
+	}
 	
-	emit_sound(ent, CHAN_AUTO, g_thunderSound[random_num(0, charsmax(g_thunderSound))], 1.0, ATTN_NORM, 0, PITCH_NORM)
+	emit_sound(mdl, CHAN_AUTO, g_thunderSound[random_num(0, charsmax(g_thunderSound))], 1.0, ATTN_NORM, 0, PITCH_NORM)
 	
 	set_task(0.1, "set_ScreenFade")
 }
@@ -96,11 +121,16 @@ public set_ScreenFade()
 		}
 	}
 	
-	new players[32], num; get_players(players, num, "ch")
+	new players[MAX_PLAYERS], num; get_players(players, num, "ch")
 	
-	for(new i; i < num; i++)
+	for(new i, id; i < num; i++)
 	{
-		message_begin(MSG_ONE_UNRELIABLE, msgScreenFade, _, players[i])
+		id = players[i]
+		
+		if(id < 1 || id > MAX_PLAYERS)
+			continue
+		
+		message_begin(MSG_ONE_UNRELIABLE, msgScreenFade, _, id)
 		write_short(1000*2)	// duration, ~0 is max
 		write_short(1000*2)	// hold time, ~0 is max
 		write_short(0x0000)	// type FFADE_IN

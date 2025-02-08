@@ -124,7 +124,10 @@ stock isPlayer()
 	
 	for(new i; i < num; i++)
 	{
-		return players[i]
+		if(is_user_connected(players[i]))
+		{
+			return players[i]
+		}
 	}
 	
 	return -1

@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "msg_connect"
-#define VERSION "1.1"
+#define VERSION "1.1a"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM < 183
@@ -18,7 +18,7 @@ new const g_message[][] =
 {
 	//	colors:
 	//
-	//	!g	=Yellow
+	//	!y	=Yellow
 	//	!t	=Team (blue"CT"/red"TE")
 	//	!g	=Green
 	
@@ -87,7 +87,7 @@ stock send_msg(id, x)
 }
 
 #if AMXX_VERSION_NUM < 183
-public client_print_color(id, const input[], any:...) 
+stock client_print_color(id, const input[], any:...) 
 {
 	new szMsg[191], MSG_Type
 	

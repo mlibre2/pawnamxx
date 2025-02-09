@@ -1,31 +1,37 @@
 #include <amxmodx>
 
 #define PLUGIN "msg_connect"
-#define VERSION "1.2"
+#define VERSION "1.3"
 #define AUTHOR "mlibre"
 
-#if AMXX_VERSION_NUM < 183
+#if AMXX_VERSION_NUM > 182
+	#define client_disconnect client_disconnected
+#else
 	#define MAX_PLAYERS 32
 #endif
 
-enum
+enum _:str
 {
-	preConnect = 1,
-	postConnect
+	tag,
+	preConnect,
+	postConnect,
+	disConnect,
+	color
 }
 
-new const g_message[][] =
+new const g_message[str][] =
 {
 	//	colors:
 	//
-	//	!y	=Yellow
-	//	!t	=Team (blue"CT"/red"TE")
-	//	!g	=Green
+	//	^1	=Yellow
+	//	^3	=Team (blue"CT"/red"TE")
+	//	^4	=Green
 	
-	"!y[AMXX]",		//tag
+	"^1[AMXX]",		//tag
 	"Trying to connect",	//pre-connect
 	"Connected",		//post-connect
-	"!g"			//color Nick
+	"Disconnected",		//disconnect
+	"^4"			//color Nick
 }
 
 new const g_sound[] = "buttons/bell1.wav"
@@ -60,31 +66,36 @@ public client_putinserver(id)
 	send_msg(id, postConnect)
 }
 
+public client_disconnect(id)
+{
+	send_msg(id, disConnect)
+}
+
 stock send_msg(id, x)
 {
-	new nick[MAX_PLAYERS], ip[MAX_PLAYERS / 2]
-	
-	get_user_name(id, nick, charsmax(nick))
-	get_user_ip(id, ip, charsmax(ip), 1)
+	new nick[MAX_PLAYERS]; get_user_name(id, nick, charsmax(nick))
 	
 	switch(x)
 	{
 		case preConnect:
 		{
+			new ip[MAX_PLAYERS / 2]; get_user_ip(id, ip, charsmax(ip), 1)
+			
 #if AMXX_VERSION_NUM > 182
-			client_print_color(0, print_team_default, "%s %s %s %s", g_message[0], nick, ip, g_message[1])
+			client_print_color(0, print_team_default, "%s %s %s %s", g_message[tag], nick, ip, g_message[preConnect])
 #else
-			client_print_color(0, "%s %s %s %s", g_message[0], nick, ip, g_message[1])
+			client_print_color(0, "%s %s %s %s", g_message[tag], nick, ip, g_message[preConnect])
 #endif
 		}
-		case postConnect:
+		case postConnect, disConnect:
 		{
 #if AMXX_VERSION_NUM > 182
-			client_print_color(0, print_team_default, "%s%s %s", g_message[3], nick, g_message[2])
+			client_print_color(0, print_team_default, "%s%s %s", g_message[color], nick, x == postConnect ? g_message[postConnect] : g_message[disConnect])
 #else
-			client_print_color(0, "%s%s %s", g_message[3], nick, g_message[2])
+			client_print_color(0, "%s%s %s", g_message[color], nick, x == postConnect ? g_message[postConnect] : g_message[disConnect])
 #endif
-			client_cmd(0, "%s ^"%s^"", isWav ? "spk" : "mp3 play", g_sound)
+			if(x == postConnect)
+				client_cmd(0, "%s ^"%s^"", isWav ? "spk" : "mp3 play", g_sound)
 		}
 	}
 }
@@ -110,10 +121,6 @@ stock client_print_color(id, const input[], any:...)
 	
 	if( !msgSayText ) 
 		msgSayText = get_user_msgid("SayText")
-		
-	replace_all(szMsg, charsmax(szMsg), "!y", "^1")
-	replace_all(szMsg, charsmax(szMsg), "!t", "^3")
-	replace_all(szMsg, charsmax(szMsg), "!g", "^4")
 	
 	message_begin(MSG_Type, msgSayText, _, id)
 	write_byte(id)	

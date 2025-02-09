@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "msg_connect"
-#define VERSION "1.1a"
+#define VERSION "1.2"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM < 183
@@ -22,13 +22,13 @@ new const g_message[][] =
 	//	!t	=Team (blue"CT"/red"TE")
 	//	!g	=Green
 	
-	"!g[AMXX]",		//tag
-	"!yTrying to connect",	//pre-connect
-	"!yConnected",		//post-connect
+	"!y[AMXX]",		//tag
+	"Trying to connect",	//pre-connect
+	"Connected",		//post-connect
 	"!g"			//color Nick
 }
 
-new const g_sound[] = "misc/talk.wav"
+new const g_sound[] = "buttons/bell1.wav"
 
 new bool:isWav
 
@@ -62,24 +62,27 @@ public client_putinserver(id)
 
 stock send_msg(id, x)
 {
-	new nick[MAX_PLAYERS]; get_user_name(id, nick, charsmax(nick))
+	new nick[MAX_PLAYERS], ip[MAX_PLAYERS / 2]
+	
+	get_user_name(id, nick, charsmax(nick))
+	get_user_ip(id, ip, charsmax(ip), 1)
 	
 	switch(x)
 	{
 		case preConnect:
 		{
 #if AMXX_VERSION_NUM > 182
-			client_print_color(0, print_team_default, "%s %s%s %s", g_message[0], g_message[1], g_message[3], nick)
+			client_print_color(0, print_team_default, "%s %s %s %s", g_message[0], nick, ip, g_message[1])
 #else
-			client_print_color(0, "%s %s%s %s", g_message[0], g_message[1], g_message[3], nick)
+			client_print_color(0, "%s %s %s %s", g_message[0], nick, ip, g_message[1])
 #endif
 		}
 		case postConnect:
 		{
 #if AMXX_VERSION_NUM > 182
-			client_print_color(0, print_team_default, "%s %s%s %s", g_message[0], g_message[2], g_message[3], nick)
+			client_print_color(0, print_team_default, "%s%s %s", g_message[3], nick, g_message[2])
 #else
-			client_print_color(0, "%s %s%s %s", g_message[0], g_message[2], g_message[3], nick)
+			client_print_color(0, "%s%s %s", g_message[3], nick, g_message[2])
 #endif
 			client_cmd(0, "%s ^"%s^"", isWav ? "spk" : "mp3 play", g_sound)
 		}

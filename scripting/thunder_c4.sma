@@ -2,7 +2,7 @@
 #include <engine>
 
 #define PLUGIN "thunder_c4"
-#define VERSION "1.2"
+#define VERSION "1.3"
 #define AUTHOR "mlibre"
 
 #if !defined MAX_PLAYERS
@@ -48,6 +48,8 @@ public create_thunder()
 	
 	if( !is_valid_ent(mdl) )
 		return
+		
+	new id = isPlayer()
 	
 	new Float:fOrigin[3]; eng_get_brush_entity_origin(mdl, fOrigin)
 	
@@ -57,10 +59,7 @@ public create_thunder()
 	iOrigin[0] = floatround(fOrigin[0])
 	iOrigin[1] = floatround(fOrigin[1])
 	iOrigin[2] = floatround(fOrigin[2])
-#endif
-	new id = isPlayer()
 	
-#if !defined message_begin_f
 	message_begin(MSG_PVS, SVC_TEMPENTITY, iOrigin, id)
 #else
 	message_begin_f(MSG_PVS, SVC_TEMPENTITY, fOrigin, id)
@@ -118,9 +117,7 @@ public set_ScreenFade()
 		}
 	}
 	
-	new id = isPlayer()
-	
-	message_begin(MSG_ONE_UNRELIABLE, msgScreenFade, _, id)
+	message_begin(MSG_BROADCAST, msgScreenFade, _, isPlayer())
 	write_short(1000*2)	// duration, ~0 is max
 	write_short(1000*2)	// hold time, ~0 is max
 	write_short(0x0000)	// type FFADE_IN

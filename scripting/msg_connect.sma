@@ -1,7 +1,7 @@
 #include <amxmodx>
 
 #define PLUGIN "msg_connect"
-#define VERSION "1.3"
+#define VERSION "1.4"
 #define AUTHOR "mlibre"
 
 #if AMXX_VERSION_NUM > 182
@@ -36,17 +36,11 @@ new const g_message[str][] =
 
 new const g_sound[] = "buttons/bell1.wav"
 
-new bool:isWav
+new isWav, g_isConnected[MAX_PLAYERS + 1]
 
 public plugin_precache() 
 {
-	if(g_sound[strlen(g_sound) - 4] == '.' 
-	&& g_sound[strlen(g_sound) - 3] == 'w'
-	&& g_sound[strlen(g_sound) - 2] == 'a'
-	&& g_sound[strlen(g_sound) - 1] == 'v')
-	{
-		isWav = true
-	}
+	isWav = equal(g_sound[strlen(g_sound) - 4], ".wav")
 	
 	precache_sound(g_sound)
 }
@@ -87,15 +81,30 @@ stock send_msg(id, x)
 			client_print_color(0, "%s %s %s %s", g_message[tag], nick, ip, g_message[preConnect])
 #endif
 		}
-		case postConnect, disConnect:
+		case postConnect:
 		{
+			if( !g_isConnected[id] )
+			{
+				g_isConnected[id] = true
 #if AMXX_VERSION_NUM > 182
-			client_print_color(0, print_team_default, "%s%s %s", g_message[color], nick, x == postConnect ? g_message[postConnect] : g_message[disConnect])
+				client_print_color(0, print_team_default, "%s%s %s", g_message[color], nick, g_message[postConnect])
 #else
-			client_print_color(0, "%s%s %s", g_message[color], nick, x == postConnect ? g_message[postConnect] : g_message[disConnect])
+				client_print_color(0, "%s%s %s", g_message[color], nick, g_message[postConnect])
 #endif
-			if(x == postConnect)
-				client_cmd(0, "%s ^"%s^"", isWav ? "spk" : "mp3 play", g_sound)
+				client_cmd(isPlayer(), "%s ^"%s^"", isWav ? "spk" : "mp3 play", g_sound)
+			}
+		}
+		case disConnect:
+		{
+			if(g_isConnected[id])
+			{
+				g_isConnected[id] = false
+#if AMXX_VERSION_NUM > 182
+				client_print_color(0, print_team_default, "%s%s %s", g_message[color], nick, g_message[disConnect])
+#else
+				client_print_color(0, "%s%s %s", g_message[color], nick, g_message[disConnect])
+#endif
+			}
 		}
 	}
 }
@@ -127,6 +136,7 @@ stock client_print_color(id, const input[], any:...)
 	write_string(szMsg)
 	message_end()
 }
+#endif
 
 stock isPlayer()
 {
@@ -142,4 +152,3 @@ stock isPlayer()
 	
 	return -1
 }
-#endif

@@ -3,8 +3,12 @@
 #include <fun>
 
 #define PLUGIN "PrimaryWeaponsMenuG"
-#define VERSION "1.1"
+#define VERSION "1.2"
 #define AUTHOR "mlibre"
+
+#if !defined MAX_PLAYERS
+	#define MAX_PLAYERS 32
+#endif
 
 enum _:x
 {
@@ -29,7 +33,7 @@ new const primaryWeapons[][x] =
 	{"M249",	CSW_M249,	5750}
 }
 
-new g_menu[33], makecallback
+new g_menu[MAX_PLAYERS + 1], makecallback
 
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
@@ -92,8 +96,23 @@ public menu_handler(id, menu, item)
 	{
 		menu_remove(id, menu)
 		
-		client_print(id, print_chat, "[AMXX] You must be alive to select a weapon")
+#if AMXX_VERSION_NUM > 182
+		client_print_color(id, print_team_default, "^4[AMXX]^1 You must be alive to select a weapon")
+#else
+		client_print_color(id, "^4[AMXX]^1 You must be alive to select a weapon")
+#endif
+		return PLUGIN_HANDLED
+	}
+	
+	if(user_has_weapon(id, primaryWeapons[item][wpn_csw]))
+	{
+		menu_remove(id, menu)
 		
+#if AMXX_VERSION_NUM > 182
+		client_print_color(id, print_team_default, "^4[AMXX]^1 You already own this weapon")
+#else
+		client_print_color(id, "^4[AMXX]^1 You already own this weapon")
+#endif
 		return PLUGIN_HANDLED
 	}
 	
@@ -109,11 +128,19 @@ public menu_handler(id, menu, item)
 		
 		cs_set_user_money(id, money - primaryWeapons[item][wpn_prices])
 		
-		client_print(id, print_chat, "[AMXX] You have bought a %s by $%d.", primaryWeapons[item][wpn_name], primaryWeapons[item][wpn_prices])
+#if AMXX_VERSION_NUM > 182
+		client_print_color(id, print_team_default, "^4[AMXX]^1 You have bought a^4 %s^1 by^4 $%d.", primaryWeapons[item][wpn_name], primaryWeapons[item][wpn_prices])
+#else
+		client_print_color(id, "^4[AMXX]^1 You have bought a^4 %s^1 by^4 $%d.", primaryWeapons[item][wpn_name], primaryWeapons[item][wpn_prices])
+#endif
 	} 
 	else 
 	{
-		client_print(id, print_chat, "[AMXX] You don't have enough money to buy a %s.", primaryWeapons[item][wpn_name])
+#if AMXX_VERSION_NUM > 182
+		client_print_color(id, print_team_default, "^4[AMXX]^1 You don't have enough money to buy a^4 %s.", primaryWeapons[item][wpn_name])
+#else
+		client_print_color(id, "^4[AMXX]^1 You don't have enough money to buy a^4 %s.", primaryWeapons[item][wpn_name])
+#endif
 	}
 	
 	menu_remove(id, menu)
@@ -141,3 +168,47 @@ public menu_close(id)
 	
 	return PLUGIN_CONTINUE	//drop normal
 }
+
+#if AMXX_VERSION_NUM < 183
+stock client_print_color(id, const input[], any:...) 
+{
+	new szMsg[191], MSG_Type
+	
+	vformat(szMsg, charsmax(szMsg), input, 3)
+	
+	if(id)
+	{
+		MSG_Type = MSG_ONE_UNRELIABLE
+	} 
+	else {
+		id = isPlayer()
+		
+		MSG_Type = MSG_BROADCAST
+	}
+	
+	static msgSayText
+	
+	if( !msgSayText ) 
+		msgSayText = get_user_msgid("SayText")
+	
+	message_begin(MSG_Type, msgSayText, _, id)
+	write_byte(id)	
+	write_string(szMsg)
+	message_end()
+}
+
+stock isPlayer()
+{
+	new players[MAX_PLAYERS], num; get_players(players, num, "ch")
+	
+	for(new i; i < num; i++)
+	{
+		if(is_user_connected(players[i]))
+		{
+			return players[i]
+		}
+	}
+	
+	return -1
+}
+#endif

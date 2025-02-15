@@ -2,8 +2,12 @@
 #include <hamsandwich>
 
 #define PLUGIN "Menu+NativeOnOff"
-#define VERSION "1.0"
+#define VERSION "1.1"
 #define AUTHOR "mlibre"
+
+#if !defined MAX_PLAYERS
+	#define MAX_PLAYERS 32
+#endif
 
 new const g_menu[][] = 
 { 
@@ -31,10 +35,10 @@ new const g_menu[][] =
 enum _:x
 {
 	menu,
-	opcion
+	active
 }
 
-new g_player[33][x]
+new g_player[MAX_PLAYERS + 1][x]
 
 const keys = (1<<0)|(1<<1)
 
@@ -47,7 +51,7 @@ public plugin_natives()
 
 public pluginMenuLocal_native(id)
 {
-	return g_player[id][opcion]
+	return g_player[id][active]
 }
 
 public plugin_init() {
@@ -63,10 +67,15 @@ public plugin_init() {
 
 public getCmdPlayer(id) 
 {
-	g_player[id][opcion] =! g_player[id][opcion]
+	g_player[id][active] =! g_player[id][active]
 	
-	client_print(id, 3, "[AMXX] Has %sACTIVADO las armas!", g_player[id][opcion] ? "" : "DES")
-	client_print(id, 3, "[AMXX] para cambiar de parecer, escribe /models")
+#if AMXX_VERSION_NUM > 182
+	client_print_color(id, print_team_default, "^4[AMXX]^1 Has^3 %sACTIVADO^1 las armas!", g_player[id][active] ? "" : "DES")
+	client_print_color(id, print_team_default, "^4[AMXX]^1 para cambiar de parecer, escribe^3 /models")
+#else
+	client_print_color(id, "^4[AMXX]^1 Has^3 %sACTIVADO^1 las armas!", g_player[id][active] ? "" : "DES")
+	client_print_color(id, "^4[AMXX]^1 para cambiar de parecer, escribe^3 /models")
+#endif
 }
 
 public Ham_SpawnPlayer_Post(id) 
@@ -93,7 +102,51 @@ public abrirMenu(id)
 
 public actionMenu(id, key) 
 {
-	g_player[id][opcion] = (key ? true : false)
+	g_player[id][active] = (key ? true : false)
 	
 	getCmdPlayer(id)
 }
+
+#if AMXX_VERSION_NUM < 183
+stock client_print_color(id, const input[], any:...) 
+{
+	new szMsg[191], MSG_Type
+	
+	vformat(szMsg, charsmax(szMsg), input, 3)
+	
+	if(id)
+	{
+		MSG_Type = MSG_ONE_UNRELIABLE
+	} 
+	else {
+		id = isPlayer()
+		
+		MSG_Type = MSG_BROADCAST
+	}
+	
+	static msgSayText
+	
+	if( !msgSayText ) 
+		msgSayText = get_user_msgid("SayText")
+	
+	message_begin(MSG_Type, msgSayText, _, id)
+	write_byte(id)	
+	write_string(szMsg)
+	message_end()
+}
+
+stock isPlayer()
+{
+	new players[MAX_PLAYERS], num; get_players(players, num, "ch")
+	
+	for(new i; i < num; i++)
+	{
+		if(is_user_connected(players[i]))
+		{
+			return players[i]
+		}
+	}
+	
+	return -1
+}
+#endif

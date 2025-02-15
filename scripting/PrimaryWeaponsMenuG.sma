@@ -3,7 +3,7 @@
 #include <fun>
 
 #define PLUGIN "PrimaryWeaponsMenuG"
-#define VERSION "1.0"
+#define VERSION "1.1"
 #define AUTHOR "mlibre"
 
 enum _:x
@@ -15,7 +15,7 @@ new const primaryWeapons[][x] =
 {
 	{"M4A1",	CSW_M4A1,	3100},
 	{"AK47",	CSW_AK47,	2500},
-	{"AWP",		CSW_AWP,	750},
+	{"AWP",		CSW_AWP,	4750},
 	{"MP5 Navy",	CSW_MP5NAVY,	1500},
 	{"XM1014",	CSW_XM1014,	3000},
 	{"M3",		CSW_M3,		1700},
@@ -29,23 +29,41 @@ new const primaryWeapons[][x] =
 	{"M249",	CSW_M249,	5750}
 }
 
-new g_menu[33]
+new g_menu[33], makecallback
 
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	register_cvar(PLUGIN, VERSION, FCVAR_SERVER | FCVAR_SPONLY)
 	
-	register_clcmd("say /menu", "show_mymenu")
+	makecallback = menu_makecallback("menu_callback")
+	
+	register_clcmd("say", "show_mymenu")
 	register_clcmd("drop", "menu_close")
 }
 
 public show_mymenu(id)
 {
-	new menu = menu_create("\yPrimary equip^n\dTo close the menu - press\y 'G'\w", "menu_handler")
+	new menu = menu_create("\yPrimary equip^n\dTo close the menu - press\y 'G'\R\d", "menu_handler")
 	
-	for(new i; i < sizeof primaryWeapons; i++) 
+	for(new i, fmtx[22]; i < sizeof primaryWeapons; i++)
 	{
-		menu_additem(menu, primaryWeapons[i], _, 0)
+		formatex(fmtx, charsmax(fmtx), "%s\R\d$%d", primaryWeapons[i], primaryWeapons[i][wpn_prices])
+		
+		if(user_has_weapon(id, primaryWeapons[i][wpn_csw]))
+		{
+			menu_additem(menu, fmtx, _, _, makecallback)
+		}
+		else
+		{
+			if(cs_get_user_money(id) >= primaryWeapons[i][wpn_prices]) 
+			{
+				menu_additem(menu, fmtx, _)
+			}
+			else
+			{
+				menu_additem(menu, fmtx, _, _, makecallback)
+			}
+		}
 	}
 	
 	menu_setprop(menu, MPROP_NUMBER_COLOR, "\y")
@@ -56,19 +74,24 @@ public show_mymenu(id)
 	g_menu[id] = 1
 }
 
+public menu_callback(id, menu, item)
+{
+	return ITEM_DISABLED
+}
+
 public menu_handler(id, menu, item)
 {
 	if(item == MENU_EXIT) 
 	{
-		g_menu[id] = 0
-		
-		menu_destroy(menu)
+		menu_remove(id, menu)
 		
 		return PLUGIN_HANDLED
 	}
 	
 	if( !is_user_alive(id) )
 	{
+		menu_remove(id, menu)
+		
 		client_print(id, print_chat, "[AMXX] You must be alive to select a weapon")
 		
 		return PLUGIN_HANDLED
@@ -78,7 +101,7 @@ public menu_handler(id, menu, item)
 	
 	if(money >= primaryWeapons[item][wpn_prices]) 
 	{
-		new weapon_name[32]
+		new weapon_name[15]
 		
 		get_weaponname(primaryWeapons[item][wpn_csw], weapon_name, charsmax(weapon_name))
 		
@@ -93,11 +116,16 @@ public menu_handler(id, menu, item)
 		client_print(id, print_chat, "[AMXX] You don't have enough money to buy a %s.", primaryWeapons[item][wpn_name])
 	}
 	
-	g_menu[id] = 0
-	
-	menu_destroy(menu)
+	menu_remove(id, menu)
 	
 	return PLUGIN_CONTINUE
+}
+
+stock menu_remove(id, menu)
+{
+	g_menu[id] = 0
+		
+	menu_destroy(menu)
 }
 
 public menu_close(id)

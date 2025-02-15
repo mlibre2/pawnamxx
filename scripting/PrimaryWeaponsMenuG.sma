@@ -3,7 +3,7 @@
 #include <fun>
 
 #define PLUGIN "PrimaryWeaponsMenuG"
-#define VERSION "1.2"
+#define VERSION "1.2a"
 #define AUTHOR "mlibre"
 
 #if !defined MAX_PLAYERS
@@ -41,7 +41,7 @@ public plugin_init() {
 	
 	makecallback = menu_makecallback("menu_callback")
 	
-	register_clcmd("say", "show_mymenu")
+	register_clcmd("say /guns", "show_mymenu")
 	register_clcmd("drop", "menu_close")
 }
 
